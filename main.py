@@ -5,22 +5,27 @@ import PyPDF2  # For extracting text from PDF files
 
 
 # Function to extract text from a PDF file
+import fitz  # PyMuPDF
+
 def extract_text(file_path):
     # Check if the file is a PDF
     if file_path.lower().endswith('.pdf'):
         try:
-            with open(file_path, 'rb') as pdf_file:
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
-                num_pages = len(pdf_reader.pages)
+            pdf_document = fitz.open(file_path)
+            num_pages = pdf_document.page_count
 
-                pdf_text = ''
-                for page_num in range(num_pages):
-                    page = pdf_reader.pages[page_num]
-                    pdf_text += page.extract_text()
+            pdf_text = ''
+            for page_num in range(num_pages):
+                page = pdf_document.load_page(page_num)
+                pdf_text += page.get_text()
+
+            print(pdf_text)
 
             # Clear the Text widget and insert extracted text
             extracted_text.delete(1.0, tk.END)
             extracted_text.insert(tk.END, pdf_text)
+
+            pdf_document.close()  # Close the PDF document
         except Exception as e:
             # Handle exceptions while reading or extracting text from the PDF
             extracted_text.delete(1.0, tk.END)
@@ -29,6 +34,7 @@ def extract_text(file_path):
         # Display a message if a non-PDF file is selected/dropped
         extracted_text.delete(1.0, tk.END)
         extracted_text.insert(tk.END, "Please select/drop a PDF file.")
+
 
 
 # Function triggered on drop event
